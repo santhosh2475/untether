@@ -1,8 +1,5 @@
-console.log("Script started, loading...");
 import { GoogleGenAI } from "@google/genai";
-import evals from "./evals.json";
-import dotenv from "dotenv";
-dotenv.config({ path: ".env.local" });
+import { NextResponse } from "next/server";
 
 const SYSTEM_PROMPT = `You are a classifier for Untether, a tool that helps people interrupt 2 AM thought loops.
 
@@ -43,70 +40,40 @@ Do not include any text outside the JSON. Do not use markdown code fences.`;
 
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY! });
 
-type EvalRow = { id: number; check_in: string; loop_type: string };
-type Result = {
-  id: number;
-  check_in: string;
-  expected: string;
-  predicted: string;
-  reasoning: string;
-  correct: boolean;
-};
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const checkIn: string | undefined = body?.check_in;
 
-async function classify(checkIn: string): Promise<{ loop_type: string; reasoning: string }> {
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash-lite",
-    contents: checkIn,
-    config: {
-      systemInstruction: SYSTEM_PROMPT,
-      temperature: 0.5,
-      responseMimeType: "application/json",
-    },
-  });
-
-  const text = response.text;
-  if (!text) throw new Error("No response text");
-  return JSON.parse(text);
-}
-
-async function main() {
-  const results: Result[] = [];
-  let correct = 0;
-
-  console.log(`Running ${evals.length} eval examples...\n`);
-
-  for (const row of evals as EvalRow[]) {
-    try {
-      const { loop_type, reasoning } = await classify(row.check_in);
-      const isCorrect = loop_type === row.loop_type;
-      if (isCorrect) correct++;
-
-      results.push({
-        id: row.id,
-        check_in: row.check_in,
-        expected: row.loop_type,
-        predicted: loop_type,
-        reasoning,
-        correct: isCorrect,
-      });
-
-      console.log(`${isCorrect ? "✅" : "❌"} #${row.id} expected=${row.loop_type} got=${loop_type}`);
-    } catch (err) {
-      console.log(`⚠️  #${row.id} ERROR: ${err}`);
+    if (!checkIn || typeof checkIn !== "string" || checkIn.trim().length === 0) {
+      return NextResponse.json(
+        { error: "check_in must be a non-empty string" },
+        { status: 400 }
+      );
     }
-    await new Promise((resolve) => setTimeout(resolve, 4500));
-  }
 
-  console.log(`\n${"=".repeat(60)}`);
-  console.log(`Accuracy: ${correct}/${evals.length} (${((correct / evals.length) * 100).toFixed(1)}%)`);
-  console.log(`${"=".repeat(60)}\n`);
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-lite",
+      contents: checkIn,
+      config: {
+        systemInstruction: SYSTEM_PROMPT,
+        temperature: 0.5,
+        responseMimeType: "application/json",
+      },
+    });
 
-  console.log("Results:\n");
-  for (const r of results) {
-    console.log(`${r.correct ? "✅" : "❌"} #${r.id}: "${r.check_in}"`);
-    console.log(`   Expected: ${r.expected} / Predicted: ${r.predicted}`);
-    console.log(`   Reasoning: ${r.reasoning}\n`);
+    const text = response.text;
+    if (!text) {
+      return NextResponse.json({ error: "No response from model" }, { status: 502 });
+    }
+
+    const parsed = JSON.parse(text);
+    return NextResponse.json(parsed);
+  } catch (err) {
+    console.error("Classify error:", err);
+    return NextResponse.json(
+      { error: "Classification failed" },
+      { status: 500 }
+    );
   }
 }
-
-main();
