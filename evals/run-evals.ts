@@ -55,7 +55,7 @@ type Result = {
 
 async function classify(checkIn: string): Promise<{ loop_type: string; reasoning: string }> {
   const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash-lite",
+    model: "gemini-3.1-flash-lite",
     contents: checkIn,
     config: {
       systemInstruction: SYSTEM_PROMPT,

@@ -7,6 +7,30 @@ type ClassifyResponse = {
   reasoning: string;
 };
 
+const LOOP_CONFIG = {
+  catastrophising: {
+    color: "#7da6c4",
+    label: "a catastrophising loop",
+    subtitle: "a fear reaching forward into a future that hasn't happened",
+    italic: true,
+    spaced: false,
+  },
+  shame: {
+    color: "#c99a6a",
+    label: "a shame loop",
+    subtitle: "a judgement turned inward, about who you think you are",
+    italic: true,
+    spaced: false,
+  },
+  racing: {
+    color: "#9ab58f",
+    label: "a racing loop",
+    subtitle: "too many things, all at once, none of them finished",
+    italic: false,
+    spaced: true,
+  },
+} as const;
+
 export default function Home() {
   const [checkIn, setCheckIn] = useState("");
   const [loading, setLoading] = useState(false);
@@ -170,11 +194,12 @@ export default function Home() {
             <p
               style={{
                 fontFamily: "var(--font-inter)",
-                fontSize: 13,
-                color: "var(--text-muted)",
+                fontSize: 11,
+                color: "var(--text-dim)",
                 textAlign: "center",
-                margin: "0 0 16px",
-                letterSpacing: "0.06em",
+                margin: "0 0 18px",
+                letterSpacing: "0.16em",
+                textTransform: "uppercase",
               }}
             >
               this looks like
@@ -183,30 +208,62 @@ export default function Home() {
             <h1
               style={{
                 fontFamily: "var(--font-fraunces)",
-                fontStyle: "italic",
-                fontSize: 44,
+                fontStyle: LOOP_CONFIG[result.loop_type].italic
+                  ? "italic"
+                  : "normal",
+                fontSize: LOOP_CONFIG[result.loop_type].spaced ? 38 : 44,
                 fontWeight: 400,
-                color: "var(--accent)",
+                color: LOOP_CONFIG[result.loop_type].color,
                 textAlign: "center",
-                margin: "0 0 32px",
+                margin: "0 0 20px",
                 lineHeight: 1.2,
+                letterSpacing: LOOP_CONFIG[result.loop_type].spaced
+                  ? "0.06em"
+                  : "-0.01em",
+                wordSpacing: LOOP_CONFIG[result.loop_type].spaced ? "4px" : "0",
               }}
             >
-              a {result.loop_type} loop
+              {LOOP_CONFIG[result.loop_type].label}
             </h1>
+
+            <div
+              style={{
+                width: 32,
+                height: 1,
+                background: LOOP_CONFIG[result.loop_type].color,
+                margin: "0 auto 20px",
+              }}
+            />
 
             <p
               style={{
                 fontFamily: "var(--font-fraunces)",
-                fontStyle: "italic",
-                fontSize: 16,
+                fontStyle: LOOP_CONFIG[result.loop_type].italic
+                  ? "italic"
+                  : "normal",
+                fontSize: 15,
                 color: "var(--text-muted)",
                 textAlign: "center",
-                margin: "0 0 56px",
+                margin: "0 auto 16px",
                 lineHeight: 1.7,
-                maxWidth: 380,
-                marginLeft: "auto",
-                marginRight: "auto",
+                maxWidth: 340,
+                letterSpacing: LOOP_CONFIG[result.loop_type].spaced
+                  ? "0.03em"
+                  : "0",
+              }}
+            >
+              {LOOP_CONFIG[result.loop_type].subtitle}
+            </p>
+
+            <p
+              style={{
+                fontFamily: "var(--font-inter)",
+                fontSize: 13,
+                color: "var(--text-dim)",
+                textAlign: "center",
+                margin: "0 auto 48px",
+                lineHeight: 1.7,
+                maxWidth: 340,
               }}
             >
               {result.reasoning}
