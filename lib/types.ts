@@ -12,4 +12,6 @@ export type Screen =
   | "anchor-game"
   | "anchor-complete"
   | "mirror"
+  | "mirror-game"
+  | "mirror-complete"
   | "pulse";

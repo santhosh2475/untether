@@ -1,10 +1,20 @@
 "use client";
 
 type MirrorIntroProps = {
+  opening: string | null;
+  loading: boolean;
+  onBegin: () => void;
   onBack: () => void;
 };
 
-export default function MirrorIntro({ onBack }: MirrorIntroProps) {
+const accent = "#c99a6a";
+
+export default function MirrorIntro({
+  opening,
+  loading,
+  onBegin,
+  onBack,
+}: MirrorIntroProps) {
   return (
     <>
       <p
@@ -20,43 +30,92 @@ export default function MirrorIntro({ onBack }: MirrorIntroProps) {
       >
         mirror
       </p>
+
       <h1
         style={{
           fontFamily: "var(--font-fraunces)",
           fontStyle: "italic",
-          fontSize: 32,
+          fontSize: 34,
           fontWeight: 400,
-          color: "#c99a6a",
+          color: accent,
           textAlign: "center",
-          margin: "0 0 24px",
+          margin: "0 0 28px",
           lineHeight: 1.25,
         }}
       >
-        Coming soon
+        Look at the story
       </h1>
-      <p
+
+      {loading && (
+        <p
+          style={{
+            fontFamily: "var(--font-fraunces)",
+            fontStyle: "italic",
+            fontSize: 15,
+            color: "var(--text-dim)",
+            textAlign: "center",
+            margin: "0 auto 40px",
+            lineHeight: 1.7,
+            maxWidth: 360,
+          }}
+        >
+          settling in&hellip;
+        </p>
+      )}
+
+      {!loading && opening && (
+        <p
+          style={{
+            fontFamily: "var(--font-inter)",
+            fontSize: 15,
+            color: "var(--text-muted)",
+            textAlign: "center",
+            margin: "0 auto 40px",
+            lineHeight: 1.75,
+            maxWidth: 380,
+          }}
+        >
+          {opening}
+        </p>
+      )}
+
+      <div
         style={{
-          fontFamily: "var(--font-inter)",
-          fontSize: 14,
-          color: "var(--text-muted)",
-          textAlign: "center",
-          margin: "0 auto 40px",
-          lineHeight: 1.7,
-          maxWidth: 340,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 16,
         }}
       >
-        The shame game is still being built.
-      </p>
-      <div style={{ display: "flex", justifyContent: "center" }}>
+        <button
+          onClick={onBegin}
+          disabled={loading}
+          style={{
+            background: "transparent",
+            border: "1px solid " + accent,
+            color: accent,
+            padding: "12px 32px",
+            borderRadius: 8,
+            fontSize: 14,
+            letterSpacing: "0.06em",
+            cursor: loading ? "not-allowed" : "pointer",
+            opacity: loading ? 0.4 : 1,
+            fontFamily: "var(--font-inter), -apple-system, sans-serif",
+            transition: "all 0.2s ease",
+          }}
+        >
+          begin
+        </button>
+
         <button
           onClick={onBack}
           style={{
             background: "transparent",
-            border: "1px solid var(--border)",
-            color: "var(--text-muted)",
-            padding: "10px 24px",
-            borderRadius: 8,
-            fontSize: 13,
+            border: "none",
+            color: "var(--text-dim)",
+            padding: "4px 12px",
+            fontSize: 12,
+            letterSpacing: "0.04em",
             cursor: "pointer",
             fontFamily: "var(--font-inter), -apple-system, sans-serif",
           }}

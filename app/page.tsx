@@ -9,7 +9,10 @@ import AnchorIntro from "../components/AnchorIntro";
 import AnchorGame from "../components/AnchorGame";
 import AnchorComplete from "../components/AnchorComplete";
 import MirrorIntro from "../components/MirrorIntro";
+import MirrorGame from "../components/MirrorGame";
+import type { SortableFragment } from "../components/MirrorGame";
 import PulseIntro from "../components/PulseIntro";
+import MirrorComplete from "../components/MirrorComplete";
 
 export default function Home() {
   const [screen, setScreen] = useState<Screen>("input");
@@ -21,24 +24,21 @@ export default function Home() {
   const [opening, setOpening] = useState<string | null>(null);
   const [gamemasterLoading, setGamemasterLoading] = useState(false);
 
+  const [fragments, setFragments] = useState<string[]>([]);
+  const [mirrorLoading, setMirrorLoading] = useState(false);
+  const [mirrorSorted, setMirrorSorted] = useState<SortableFragment[]>([]);
   const handleSubmit = async () => {
     if (!checkIn.trim() || loading) return;
-
     setLoading(true);
     setResult(null);
     setError(null);
-
     try {
       const response = await fetch("/api/classify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ check_in: checkIn }),
       });
-
-      if (!response.ok) {
-        throw new Error("Classification failed");
-      }
-
+      if (!response.ok) throw new Error("Classification failed");
       const data: ClassifyResponse = await response.json();
       setResult(data);
       setScreen("result");
@@ -52,12 +52,10 @@ export default function Home() {
 
   const handleContinue = async () => {
     if (!result) return;
-
     const game = LOOP_CONFIG[result.loop_type].game;
     setScreen(game);
     setOpening(null);
     setGamemasterLoading(true);
-
     try {
       const response = await fetch("/api/gamemaster", {
         method: "POST",
@@ -67,17 +65,13 @@ export default function Home() {
           loop_type: result.loop_type,
         }),
       });
-
-      if (!response.ok) {
-        throw new Error("Gamemaster failed");
-      }
-
+      if (!response.ok) throw new Error("Gamemaster failed");
       const data: { opening: string; game: string } = await response.json();
       setOpening(data.opening);
     } catch (err) {
       console.error(err);
       setOpening(
-        "The loop is pulling you toward something that hasn't happened. For the next ninety seconds, we come back to the room you're actually in."
+        "The loop is telling you a hard story about who you are. For the next few minutes, we look at that story from the outside."
       );
     } finally {
       setGamemasterLoading(false);
@@ -90,6 +84,9 @@ export default function Home() {
     setError(null);
     setOpening(null);
     setGamemasterLoading(false);
+    setFragments([]);
+    setMirrorSorted([]);
+    setMirrorLoading(false);
     setScreen("input");
   };
 
@@ -104,6 +101,37 @@ export default function Home() {
   const handleAnchorComplete = (entries: string[]) => {
     console.log("Anchor entries:", entries);
     setScreen("anchor-complete");
+  };
+
+  const handleMirrorBegin = async () => {
+    setScreen("mirror-game");
+    setFragments([]);
+    setMirrorLoading(true);
+    try {
+      const response = await fetch("/api/mirror", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ check_in: checkIn }),
+      });
+      if (!response.ok) throw new Error("Mirror failed");
+      const data: { fragments: string[] } = await response.json();
+      setFragments(data.fragments);
+    } catch (err) {
+      console.error(err);
+      setFragments([
+        "something happened today",
+        "I did not handle it the way I wanted to",
+        "I keep thinking about it",
+        "I am the kind of person this happens to",
+      ]);
+    } finally {
+      setMirrorLoading(false);
+    }
+  };
+
+const handleMirrorComplete = (sorted: SortableFragment[]) => {
+    setMirrorSorted(sorted);
+    setScreen("mirror-complete");
   };
 
   return (
@@ -163,12 +191,43 @@ export default function Home() {
           <AnchorGame onComplete={handleAnchorComplete} />
         )}
 
-       {screen === "anchor-complete" && (
-  <AnchorComplete onReset={handleReset} />
-)}
+        {screen === "anchor-complete" && (
+          <AnchorComplete onReset={handleReset} />
+        )}
 
-        {screen === "mirror" && <MirrorIntro onBack={handleBackToResult} />}
+        {screen === "mirror" && (
+          <MirrorIntro
+            opening={opening}
+            loading={gamemasterLoading}
+            onBegin={handleMirrorBegin}
+            onBack={handleBackToResult}
+          />
+        )}
 
+        {screen === "mirror-game" && mirrorLoading && (
+          <p
+            style={{
+              fontFamily: "var(--font-fraunces)",
+              fontStyle: "italic",
+              fontSize: 16,
+              color: "var(--text-dim)",
+              textAlign: "center",
+              lineHeight: 1.7,
+            }}
+          >
+            breaking the thought apart&hellip;
+          </p>
+        )}
+
+        {screen === "mirror-game" && !mirrorLoading && fragments.length > 0 && (
+          <MirrorGame
+            fragments={fragments}
+            onComplete={handleMirrorComplete}
+          />
+        )}
+       {screen === "mirror-complete" && (
+          <MirrorComplete sorted={mirrorSorted} onReset={handleReset} />
+        )}
         {screen === "pulse" && <PulseIntro onBack={handleBackToResult} />}
       </div>
     </main>
