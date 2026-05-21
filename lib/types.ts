@@ -5,4 +5,11 @@ export type ClassifyResponse = {
   reasoning: string;
 };
 
-export type Screen = "input" | "result" | "anchor" | "mirror" | "pulse";
+export type Screen =
+  | "input"
+  | "result"
+  | "anchor"
+  | "anchor-game"
+  | "anchor-complete"
+  | "mirror"
+  | "pulse";

@@ -29,6 +29,7 @@ You must respond with valid JSON only, in this exact format:
 
 {
   "opening": "the 2-3 sentence opening text"
+  - Vary how you begin. Do not open every response with the same phrase (for example, do not always start with "It sounds like"). Start sometimes with the worry itself, sometimes with the loop, sometimes with the exercise.
 }
 
 Do not include any text outside the JSON. Do not use markdown code fences.`;

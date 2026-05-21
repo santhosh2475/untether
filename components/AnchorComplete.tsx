@@ -1,20 +1,16 @@
 "use client";
 
-type AnchorIntroProps = {
-  opening: string | null;
-  loading: boolean;
-  onBegin: () => void;
-  onBack: () => void;
-};
-
 const accent = "#7da6c4";
 
-export default function AnchorIntro({
-  opening,
-  loading,
-  onBegin,
-  onBack,
-}: AnchorIntroProps) {
+type AnchorCompleteProps = {
+  onReflect: () => void;
+  onReset: () => void;
+};
+
+export default function AnchorComplete({
+  onReflect,
+  onReset,
+}: AnchorCompleteProps) {
   return (
     <>
       <p
@@ -23,7 +19,7 @@ export default function AnchorIntro({
           fontSize: 11,
           color: "var(--text-dim)",
           textAlign: "center",
-          margin: "0 0 18px",
+          margin: "0 0 28px",
           letterSpacing: "0.16em",
           textTransform: "uppercase",
         }}
@@ -35,49 +31,32 @@ export default function AnchorIntro({
         style={{
           fontFamily: "var(--font-fraunces)",
           fontStyle: "italic",
-          fontSize: 34,
+          fontSize: 32,
           fontWeight: 400,
           color: accent,
           textAlign: "center",
-          margin: "0 0 28px",
-          lineHeight: 1.25,
+          margin: "0 0 24px",
+          lineHeight: 1.3,
         }}
       >
-        Come back to right now
+        You came back
       </h1>
 
-      {loading && (
-        <p
-          style={{
-            fontFamily: "var(--font-fraunces)",
-            fontStyle: "italic",
-            fontSize: 15,
-            color: "var(--text-dim)",
-            textAlign: "center",
-            margin: "0 auto 40px",
-            lineHeight: 1.7,
-            maxWidth: 360,
-          }}
-        >
-          settling in&hellip;
-        </p>
-      )}
-
-      {!loading && opening && (
-        <p
-          style={{
-            fontFamily: "var(--font-inter)",
-            fontSize: 15,
-            color: "var(--text-muted)",
-            textAlign: "center",
-            margin: "0 auto 40px",
-            lineHeight: 1.75,
-            maxWidth: 380,
-          }}
-        >
-          {opening}
-        </p>
-      )}
+      <p
+        style={{
+          fontFamily: "var(--font-inter)",
+          fontSize: 15,
+          color: "var(--text-muted)",
+          textAlign: "center",
+          margin: "0 auto 40px",
+          lineHeight: 1.75,
+          maxWidth: 360,
+        }}
+      >
+        The loop was pulling you somewhere that hasn&rsquo;t happened. For a
+        moment, you were here instead, in the room you&rsquo;re actually in.
+        That&rsquo;s the whole exercise. Nothing more is needed right now.
+      </p>
 
       <div
         style={{
@@ -88,8 +67,7 @@ export default function AnchorIntro({
         }}
       >
         <button
-          onClick={onBegin}
-          disabled={loading}
+          onClick={onReflect}
           style={{
             background: "transparent",
             border: "1px solid " + accent,
@@ -98,17 +76,16 @@ export default function AnchorIntro({
             borderRadius: 8,
             fontSize: 14,
             letterSpacing: "0.06em",
-            cursor: loading ? "not-allowed" : "pointer",
-            opacity: loading ? 0.4 : 1,
+            cursor: "pointer",
             fontFamily: "var(--font-inter), -apple-system, sans-serif",
             transition: "all 0.2s ease",
           }}
         >
-          begin
+          how do you feel?
         </button>
 
         <button
-          onClick={onBack}
+          onClick={onReset}
           style={{
             background: "transparent",
             border: "none",
@@ -120,7 +97,7 @@ export default function AnchorIntro({
             fontFamily: "var(--font-inter), -apple-system, sans-serif",
           }}
         >
-          back
+          another thought
         </button>
       </div>
     </>

@@ -6,6 +6,8 @@ import { LOOP_CONFIG } from "../lib/loopConfig";
 import InputScreen from "../components/InputScreen";
 import ResultScreen from "../components/ResultScreen";
 import AnchorIntro from "../components/AnchorIntro";
+import AnchorGame from "../components/AnchorGame";
+import AnchorComplete from "../components/AnchorComplete";
 import MirrorIntro from "../components/MirrorIntro";
 import PulseIntro from "../components/PulseIntro";
 
@@ -15,6 +17,9 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ClassifyResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const [opening, setOpening] = useState<string | null>(null);
+  const [gamemasterLoading, setGamemasterLoading] = useState(false);
 
   const handleSubmit = async () => {
     if (!checkIn.trim() || loading) return;
@@ -45,21 +50,60 @@ export default function Home() {
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!result) return;
+
     const game = LOOP_CONFIG[result.loop_type].game;
     setScreen(game);
+    setOpening(null);
+    setGamemasterLoading(true);
+
+    try {
+      const response = await fetch("/api/gamemaster", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          check_in: checkIn,
+          loop_type: result.loop_type,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Gamemaster failed");
+      }
+
+      const data: { opening: string; game: string } = await response.json();
+      setOpening(data.opening);
+    } catch (err) {
+      console.error(err);
+      setOpening(
+        "The loop is pulling you toward something that hasn't happened. For the next ninety seconds, we come back to the room you're actually in."
+      );
+    } finally {
+      setGamemasterLoading(false);
+    }
   };
 
   const handleReset = () => {
     setCheckIn("");
     setResult(null);
     setError(null);
+    setOpening(null);
+    setGamemasterLoading(false);
     setScreen("input");
   };
 
   const handleBackToResult = () => {
     setScreen("result");
+  };
+
+  const handleAnchorBegin = () => {
+    setScreen("anchor-game");
+  };
+
+  const handleAnchorComplete = (entries: string[]) => {
+    console.log("Anchor entries:", entries);
+    setScreen("anchor-complete");
   };
 
   return (
@@ -108,10 +152,19 @@ export default function Home() {
 
         {screen === "anchor" && (
           <AnchorIntro
-            checkIn={checkIn}
-            onBegin={() => console.log("Anchor begins")}
+            opening={opening}
+            loading={gamemasterLoading}
+            onBegin={handleAnchorBegin}
             onBack={handleBackToResult}
           />
+        )}
+
+        {screen === "anchor-game" && (
+          <AnchorGame onComplete={handleAnchorComplete} />
+        )}
+
+        {screen === "anchor-complete" && (
+          <AnchorComplete onReflect={handleReset} onReset={handleReset} />
         )}
 
         {screen === "mirror" && <MirrorIntro onBack={handleBackToResult} />}

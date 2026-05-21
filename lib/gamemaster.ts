@@ -22,7 +22,7 @@ const FALLBACK_OPENINGS: Record<LoopType, string> = {
     "The loop is holding too many things at once. For the next ninety seconds, we set them down, one at a time.",
 };
 
-const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY! });
+
 
 export async function generateOpening(
   checkIn: string,
@@ -33,6 +33,7 @@ export async function generateOpening(
   const userMessage = `Loop type: ${loopType}\nTheir thought: "${checkIn}"`;
 
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY! });
     const response = await ai.models.generateContent({
       model: "gemini-3.1-flash-lite",
       contents: userMessage,
