@@ -13,6 +13,8 @@ import MirrorGame from "../components/MirrorGame";
 import type { SortableFragment } from "../components/MirrorGame";
 import PulseIntro from "../components/PulseIntro";
 import MirrorComplete from "../components/MirrorComplete";
+import PulseGame from "../components/PulseGame";
+import PulseComplete from "../components/PulseComplete";
 
 export default function Home() {
   const [screen, setScreen] = useState<Screen>("input");
@@ -27,6 +29,8 @@ export default function Home() {
   const [fragments, setFragments] = useState<string[]>([]);
   const [mirrorLoading, setMirrorLoading] = useState(false);
   const [mirrorSorted, setMirrorSorted] = useState<SortableFragment[]>([]);
+  const [pulseItems, setPulseItems] = useState<string[]>([]);
+  const [pulseLoading, setPulseLoading] = useState(false);
   const handleSubmit = async () => {
     if (!checkIn.trim() || loading) return;
     setLoading(true);
@@ -88,6 +92,8 @@ export default function Home() {
     setMirrorSorted([]);
     setMirrorLoading(false);
     setScreen("input");
+    setPulseItems([]);
+    setPulseLoading(false);
   };
 
   const handleBackToResult = () => {
@@ -102,7 +108,34 @@ export default function Home() {
     console.log("Anchor entries:", entries);
     setScreen("anchor-complete");
   };
+const handlePulseBegin = async () => {
+    setScreen("pulse-game");
+    setPulseItems([]);
+    setPulseLoading(true);
+    try {
+      const response = await fetch("/api/pulse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ check_in: checkIn }),
+      });
+      if (!response.ok) throw new Error("Pulse failed");
+      const data: { items: string[] } = await response.json();
+      setPulseItems(data.items);
+    } catch (err) {
+      console.error(err);
+      setPulseItems([
+        "the things I need to do",
+        "the things I have not finished",
+        "everything waiting for tomorrow",
+      ]);
+    } finally {
+      setPulseLoading(false);
+    }
+  };
 
+  const handlePulseComplete = () => {
+    setScreen("pulse-complete");
+  };
   const handleMirrorBegin = async () => {
     setScreen("mirror-game");
     setFragments([]);
@@ -228,7 +261,36 @@ const handleMirrorComplete = (sorted: SortableFragment[]) => {
        {screen === "mirror-complete" && (
           <MirrorComplete sorted={mirrorSorted} onReset={handleReset} />
         )}
-        {screen === "pulse" && <PulseIntro onBack={handleBackToResult} />}
+        {screen === "pulse" && (
+          <PulseIntro
+            opening={opening}
+            loading={gamemasterLoading}
+            onBegin={handlePulseBegin}
+            onBack={handleBackToResult}
+          />
+        )}
+
+        {screen === "pulse-game" && pulseLoading && (
+          <p
+            style={{
+              fontFamily: "var(--font-fraunces)",
+              fontStyle: "italic",
+              fontSize: 16,
+              color: "var(--text-dim)",
+              textAlign: "center",
+              lineHeight: 1.7,
+            }}
+          >
+            untangling the pile&hellip;
+          </p>
+        )}
+
+        {screen === "pulse-game" && !pulseLoading && pulseItems.length > 0 && (
+          <PulseGame items={pulseItems} onComplete={handlePulseComplete} />
+        )}
+        {screen === "pulse-complete" && (
+          <PulseComplete onReset={handleReset} />
+        )}
       </div>
     </main>
   );

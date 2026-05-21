@@ -14,4 +14,6 @@ export type Screen =
   | "mirror"
   | "mirror-game"
   | "mirror-complete"
-  | "pulse";
+  | "pulse"
+  | "pulse-game"
+  | "pulse-complete";
