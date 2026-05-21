@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { ClassifyResponse, Screen } from "../lib/types";
 import { LOOP_CONFIG } from "../lib/loopConfig";
+import { getDeviceId } from "../lib/deviceId";
 import InputScreen from "../components/InputScreen";
 import ResultScreen from "../components/ResultScreen";
 import AnchorIntro from "../components/AnchorIntro";
@@ -11,10 +12,17 @@ import AnchorComplete from "../components/AnchorComplete";
 import MirrorIntro from "../components/MirrorIntro";
 import MirrorGame from "../components/MirrorGame";
 import type { SortableFragment } from "../components/MirrorGame";
-import PulseIntro from "../components/PulseIntro";
 import MirrorComplete from "../components/MirrorComplete";
+import PulseIntro from "../components/PulseIntro";
 import PulseGame from "../components/PulseGame";
 import PulseComplete from "../components/PulseComplete";
+import ReflectionScreen from "../components/ReflectionScreen";
+
+const ACCENTS: Record<string, string> = {
+  catastrophising: "#7da6c4",
+  shame: "#c99a6a",
+  racing: "#9ab58f",
+};
 
 export default function Home() {
   const [screen, setScreen] = useState<Screen>("input");
@@ -31,6 +39,12 @@ export default function Home() {
   const [mirrorSorted, setMirrorSorted] = useState<SortableFragment[]>([]);
   const [pulseItems, setPulseItems] = useState<string[]>([]);
   const [pulseLoading, setPulseLoading] = useState(false);
+
+  const [reflectGame, setReflectGame] = useState("");
+
+  const loopType = result ? result.loop_type : "catastrophising";
+  const accent = ACCENTS[loopType] || "#7da6c4";
+
   const handleSubmit = async () => {
     if (!checkIn.trim() || loading) return;
     setLoading(true);
@@ -64,10 +78,7 @@ export default function Home() {
       const response = await fetch("/api/gamemaster", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          check_in: checkIn,
-          loop_type: result.loop_type,
-        }),
+        body: JSON.stringify({ check_in: checkIn, loop_type: result.loop_type }),
       });
       if (!response.ok) throw new Error("Gamemaster failed");
       const data: { opening: string; game: string } = await response.json();
@@ -75,7 +86,7 @@ export default function Home() {
     } catch (err) {
       console.error(err);
       setOpening(
-        "The loop is telling you a hard story about who you are. For the next few minutes, we look at that story from the outside."
+        "The loop is telling you a hard story. For the next few minutes, we look at it from the outside."
       );
     } finally {
       setGamemasterLoading(false);
@@ -91,51 +102,17 @@ export default function Home() {
     setFragments([]);
     setMirrorSorted([]);
     setMirrorLoading(false);
-    setScreen("input");
     setPulseItems([]);
     setPulseLoading(false);
+    setReflectGame("");
+    setScreen("input");
   };
 
-  const handleBackToResult = () => {
-    setScreen("result");
-  };
+  const handleBackToResult = () => setScreen("result");
 
-  const handleAnchorBegin = () => {
-    setScreen("anchor-game");
-  };
+  const handleAnchorBegin = () => setScreen("anchor-game");
+  const handleAnchorComplete = () => setScreen("anchor-complete");
 
-  const handleAnchorComplete = (entries: string[]) => {
-    console.log("Anchor entries:", entries);
-    setScreen("anchor-complete");
-  };
-const handlePulseBegin = async () => {
-    setScreen("pulse-game");
-    setPulseItems([]);
-    setPulseLoading(true);
-    try {
-      const response = await fetch("/api/pulse", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ check_in: checkIn }),
-      });
-      if (!response.ok) throw new Error("Pulse failed");
-      const data: { items: string[] } = await response.json();
-      setPulseItems(data.items);
-    } catch (err) {
-      console.error(err);
-      setPulseItems([
-        "the things I need to do",
-        "the things I have not finished",
-        "everything waiting for tomorrow",
-      ]);
-    } finally {
-      setPulseLoading(false);
-    }
-  };
-
-  const handlePulseComplete = () => {
-    setScreen("pulse-complete");
-  };
   const handleMirrorBegin = async () => {
     setScreen("mirror-game");
     setFragments([]);
@@ -161,135 +138,97 @@ const handlePulseBegin = async () => {
       setMirrorLoading(false);
     }
   };
-
-const handleMirrorComplete = (sorted: SortableFragment[]) => {
+  const handleMirrorComplete = (sorted: SortableFragment[]) => {
     setMirrorSorted(sorted);
     setScreen("mirror-complete");
   };
 
+  const handlePulseBegin = async () => {
+    setScreen("pulse-game");
+    setPulseItems([]);
+    setPulseLoading(true);
+    try {
+      const response = await fetch("/api/pulse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ check_in: checkIn }),
+      });
+      if (!response.ok) throw new Error("Pulse failed");
+      const data: { items: string[] } = await response.json();
+      setPulseItems(data.items);
+    } catch (err) {
+      console.error(err);
+      setPulseItems([
+        "the things I need to do",
+        "the things I have not finished",
+        "everything waiting for tomorrow",
+      ]);
+    } finally {
+      setPulseLoading(false);
+    }
+  };
+  const handlePulseComplete = () => setScreen("pulse-complete");
+
+  const goToReflect = (game: string) => {
+    setReflectGame(game);
+    setScreen("reflect");
+  };
+
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "32px 24px",
-      }}
-    >
+    <main style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px" }}>
       <div style={{ width: "100%", maxWidth: 480 }}>
-        <p
-          style={{
-            fontFamily: "var(--font-fraunces)",
-            fontSize: 13,
-            color: "var(--text-dim)",
-            letterSpacing: "0.18em",
-            textTransform: "lowercase",
-            textAlign: "center",
-            margin: "0 0 56px",
-          }}
-        >
+        <p style={{ fontFamily: "var(--font-fraunces)", fontSize: 13, color: "var(--text-dim)", letterSpacing: "0.18em", textTransform: "lowercase", textAlign: "center", margin: "0 0 56px" }}>
           untether
         </p>
 
         {screen === "input" && (
-          <InputScreen
-            checkIn={checkIn}
-            setCheckIn={setCheckIn}
-            onSubmit={handleSubmit}
-            loading={loading}
-            error={error}
-          />
+          <InputScreen checkIn={checkIn} setCheckIn={setCheckIn} onSubmit={handleSubmit} loading={loading} error={error} />
         )}
 
         {screen === "result" && result && (
-          <ResultScreen
-            result={result}
-            onContinue={handleContinue}
-            onReset={handleReset}
-          />
+          <ResultScreen result={result} onContinue={handleContinue} onReset={handleReset} />
         )}
 
         {screen === "anchor" && (
-          <AnchorIntro
-            opening={opening}
-            loading={gamemasterLoading}
-            onBegin={handleAnchorBegin}
-            onBack={handleBackToResult}
-          />
+          <AnchorIntro opening={opening} loading={gamemasterLoading} onBegin={handleAnchorBegin} onBack={handleBackToResult} />
         )}
-
-        {screen === "anchor-game" && (
-          <AnchorGame onComplete={handleAnchorComplete} />
-        )}
-
+        {screen === "anchor-game" && <AnchorGame onComplete={handleAnchorComplete} />}
         {screen === "anchor-complete" && (
-          <AnchorComplete onReset={handleReset} />
+          <AnchorComplete onReflect={() => goToReflect("anchor")} />
         )}
 
         {screen === "mirror" && (
-          <MirrorIntro
-            opening={opening}
-            loading={gamemasterLoading}
-            onBegin={handleMirrorBegin}
-            onBack={handleBackToResult}
-          />
+          <MirrorIntro opening={opening} loading={gamemasterLoading} onBegin={handleMirrorBegin} onBack={handleBackToResult} />
         )}
-
         {screen === "mirror-game" && mirrorLoading && (
-          <p
-            style={{
-              fontFamily: "var(--font-fraunces)",
-              fontStyle: "italic",
-              fontSize: 16,
-              color: "var(--text-dim)",
-              textAlign: "center",
-              lineHeight: 1.7,
-            }}
-          >
+          <p style={{ fontFamily: "var(--font-fraunces)", fontStyle: "italic", fontSize: 16, color: "var(--text-dim)", textAlign: "center", lineHeight: 1.7 }}>
             breaking the thought apart&hellip;
           </p>
         )}
-
         {screen === "mirror-game" && !mirrorLoading && fragments.length > 0 && (
-          <MirrorGame
-            fragments={fragments}
-            onComplete={handleMirrorComplete}
-          />
+          <MirrorGame fragments={fragments} onComplete={handleMirrorComplete} />
         )}
-       {screen === "mirror-complete" && (
-          <MirrorComplete sorted={mirrorSorted} onReset={handleReset} />
-        )}
-        {screen === "pulse" && (
-          <PulseIntro
-            opening={opening}
-            loading={gamemasterLoading}
-            onBegin={handlePulseBegin}
-            onBack={handleBackToResult}
-          />
+        {screen === "mirror-complete" && (
+          <MirrorComplete sorted={mirrorSorted} onReflect={() => goToReflect("mirror")} />
         )}
 
+        {screen === "pulse" && (
+          <PulseIntro opening={opening} loading={gamemasterLoading} onBegin={handlePulseBegin} onBack={handleBackToResult} />
+        )}
         {screen === "pulse-game" && pulseLoading && (
-          <p
-            style={{
-              fontFamily: "var(--font-fraunces)",
-              fontStyle: "italic",
-              fontSize: 16,
-              color: "var(--text-dim)",
-              textAlign: "center",
-              lineHeight: 1.7,
-            }}
-          >
+          <p style={{ fontFamily: "var(--font-fraunces)", fontStyle: "italic", fontSize: 16, color: "var(--text-dim)", textAlign: "center", lineHeight: 1.7 }}>
             untangling the pile&hellip;
           </p>
         )}
-
         {screen === "pulse-game" && !pulseLoading && pulseItems.length > 0 && (
           <PulseGame items={pulseItems} onComplete={handlePulseComplete} />
         )}
         {screen === "pulse-complete" && (
-          <PulseComplete onReset={handleReset} />
+          <PulseComplete onReflect={() => goToReflect("pulse")} />
+        )}
+
+        {screen === "reflect" && (
+          <ReflectionScreen loopType={loopType} game={reflectGame} checkIn={checkIn} deviceId={getDeviceId()} accent={accent} onDone={handleReset} />
         )}
       </div>
     </main>

@@ -2,7 +2,7 @@ export type LoopType = "catastrophising" | "shame" | "racing";
 
 export type ClassifyResponse = {
   loop_type: LoopType;
-  reasoning: string;
+  confidence: number;
 };
 
 export type Screen =
@@ -16,4 +16,5 @@ export type Screen =
   | "mirror-complete"
   | "pulse"
   | "pulse-game"
-  | "pulse-complete";
+  | "pulse-complete"
+  | "reflect";
