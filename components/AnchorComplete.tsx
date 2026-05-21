@@ -3,14 +3,10 @@
 const accent = "#7da6c4";
 
 type AnchorCompleteProps = {
-  onReflect: () => void;
   onReset: () => void;
 };
 
-export default function AnchorComplete({
-  onReflect,
-  onReset,
-}: AnchorCompleteProps) {
+export default function AnchorComplete({ onReset }: AnchorCompleteProps) {
   return (
     <>
       <p
@@ -58,16 +54,9 @@ export default function AnchorComplete({
         That&rsquo;s the whole exercise. Nothing more is needed right now.
       </p>
 
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 16,
-        }}
-      >
+      <div style={{ display: "flex", justifyContent: "center" }}>
         <button
-          onClick={onReflect}
+          onClick={onReset}
           style={{
             background: "transparent",
             border: "1px solid " + accent,
@@ -79,22 +68,6 @@ export default function AnchorComplete({
             cursor: "pointer",
             fontFamily: "var(--font-inter), -apple-system, sans-serif",
             transition: "all 0.2s ease",
-          }}
-        >
-          how do you feel?
-        </button>
-
-        <button
-          onClick={onReset}
-          style={{
-            background: "transparent",
-            border: "none",
-            color: "var(--text-dim)",
-            padding: "4px 12px",
-            fontSize: 12,
-            letterSpacing: "0.04em",
-            cursor: "pointer",
-            fontFamily: "var(--font-inter), -apple-system, sans-serif",
           }}
         >
           another thought

@@ -57,7 +57,7 @@ Tables (planned):
 
 ## Models in use
 
-- gemini-2.5-flash-lite for all three agents
+- gemini-3.1-flash-lite for all three agents
   Reasoning: free tier, low latency, good enough accuracy for classification (95%+ on eval set)
 
 ## What this is NOT

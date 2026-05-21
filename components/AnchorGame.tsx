@@ -5,11 +5,31 @@ import { useState, useEffect } from "react";
 const accent = "#7da6c4";
 
 const STEPS = [
-  { sense: "see", count: 5, prompt: "something you can see" },
-  { sense: "touch", count: 4, prompt: "something you can feel or touch" },
-  { sense: "hear", count: 3, prompt: "something you can hear" },
-  { sense: "smell", count: 2, prompt: "something you can smell" },
-  { sense: "taste", count: 1, prompt: "something you can taste" },
+  {
+    sense: "see",
+    count: 5,
+    prompt: "What can you see right now? Name one thing.",
+  },
+  {
+    sense: "touch",
+    count: 4,
+    prompt: "Reach out, or notice your body. What can you feel?",
+  },
+  {
+    sense: "hear",
+    count: 3,
+    prompt: "Stay still a second. What can you hear?",
+  },
+  {
+    sense: "smell",
+    count: 2,
+    prompt: "Take a slow breath in. What can you smell?",
+  },
+  {
+    sense: "taste",
+    count: 1,
+    prompt: "One last thing. What can you taste?",
+  },
 ];
 
 type AnchorGameProps = {
@@ -22,6 +42,7 @@ export default function AnchorGame({ onComplete }: AnchorGameProps) {
   const [entries, setEntries] = useState<string[]>([]);
   const [current, setCurrent] = useState("");
   const [promptVisible, setPromptVisible] = useState(false);
+  const [lastEntry, setLastEntry] = useState<string | null>(null);
 
   const step = STEPS[stepIndex];
 
@@ -36,8 +57,10 @@ export default function AnchorGame({ onComplete }: AnchorGameProps) {
   const handleSubmit = () => {
     if (!current.trim() || !promptVisible) return;
 
-    const updatedEntries = [...entries, current.trim()];
+    const entry = current.trim();
+    const updatedEntries = [...entries, entry];
     setEntries(updatedEntries);
+    setLastEntry(entry);
     setCurrent("");
 
     const isLastItemOfStep = itemNumber >= step.count;
@@ -61,7 +84,7 @@ export default function AnchorGame({ onComplete }: AnchorGameProps) {
           fontSize: 11,
           color: "var(--text-dim)",
           textAlign: "center",
-          margin: "0 0 32px",
+          margin: "0 0 24px",
           letterSpacing: "0.16em",
           textTransform: "uppercase",
         }}
@@ -69,34 +92,62 @@ export default function AnchorGame({ onComplete }: AnchorGameProps) {
         anchor &middot; {step.sense}
       </p>
 
-      <p
+      <div
         style={{
-          fontFamily: "var(--font-inter)",
-          fontSize: 12,
-          color: "var(--text-dim)",
-          textAlign: "center",
-          margin: "0 0 20px",
-          letterSpacing: "0.1em",
+          display: "flex",
+          justifyContent: "center",
+          gap: 8,
+          margin: "0 0 28px",
         }}
       >
-        {itemNumber} of {step.count}
-      </p>
+        {Array.from({ length: step.count }).map((_, i) => (
+          <div
+            key={i}
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              background: i < itemNumber ? accent : "var(--border)",
+              transition: "background 0.4s ease",
+            }}
+          />
+        ))}
+      </div>
+
+      <div style={{ minHeight: 20, marginBottom: 8 }}>
+        {lastEntry && (
+          <p
+            style={{
+              fontFamily: "var(--font-fraunces)",
+              fontStyle: "italic",
+              fontSize: 14,
+              color: "var(--text-dim)",
+              textAlign: "center",
+              margin: 0,
+              opacity: promptVisible ? 0.6 : 0,
+              transition: "opacity 0.6s ease",
+            }}
+          >
+            {lastEntry}
+          </p>
+        )}
+      </div>
 
       <h1
         style={{
           fontFamily: "var(--font-fraunces)",
           fontStyle: "italic",
-          fontSize: 30,
+          fontSize: 27,
           fontWeight: 400,
           color: accent,
           textAlign: "center",
           margin: "0 0 36px",
-          lineHeight: 1.3,
+          lineHeight: 1.35,
           opacity: promptVisible ? 1 : 0,
           transition: "opacity 0.6s ease",
         }}
       >
-        Name {step.prompt}
+        {step.prompt}
       </h1>
 
       <input

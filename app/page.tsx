@@ -163,9 +163,9 @@ export default function Home() {
           <AnchorGame onComplete={handleAnchorComplete} />
         )}
 
-        {screen === "anchor-complete" && (
-          <AnchorComplete onReflect={handleReset} onReset={handleReset} />
-        )}
+       {screen === "anchor-complete" && (
+  <AnchorComplete onReset={handleReset} />
+)}
 
         {screen === "mirror" && <MirrorIntro onBack={handleBackToResult} />}
 
