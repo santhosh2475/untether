@@ -3,9 +3,11 @@ export type LoopType = "catastrophising" | "shame" | "racing";
 export type ClassifyResponse = {
   loop_type: LoopType;
   confidence: number;
+  reasoning: string;
 };
 
 export type Screen =
+  | "intro"
   | "input"
   | "result"
   | "anchor"

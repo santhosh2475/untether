@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { ClassifyResponse, Screen } from "../lib/types";
 import { LOOP_CONFIG } from "../lib/loopConfig";
 import { getDeviceId } from "../lib/deviceId";
+import { hasSeenIntro, markIntroSeen } from "../lib/firstRun";
+import IntroScreen from "../components/IntroScreen";
 import InputScreen from "../components/InputScreen";
 import ResultScreen from "../components/ResultScreen";
 import AnchorIntro from "../components/AnchorIntro";
@@ -25,6 +27,7 @@ const ACCENTS: Record<string, string> = {
 };
 
 export default function Home() {
+  const [ready, setReady] = useState(false);
   const [screen, setScreen] = useState<Screen>("input");
   const [checkIn, setCheckIn] = useState("");
   const [loading, setLoading] = useState(false);
@@ -42,8 +45,18 @@ export default function Home() {
 
   const [reflectGame, setReflectGame] = useState("");
 
+  useEffect(() => {
+    if (!hasSeenIntro()) setScreen("intro");
+    setReady(true);
+  }, []);
+
   const loopType = result ? result.loop_type : "catastrophising";
   const accent = ACCENTS[loopType] || "#7da6c4";
+
+  const handleIntroDone = () => {
+    markIntroSeen();
+    setScreen("input");
+  };
 
   const handleSubmit = async () => {
     if (!checkIn.trim() || loading) return;
@@ -174,12 +187,20 @@ export default function Home() {
     setScreen("reflect");
   };
 
+  if (!ready) {
+    return (
+      <main style={{ minHeight: "100vh" }} />
+    );
+  }
+
   return (
     <main style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px" }}>
       <div style={{ width: "100%", maxWidth: 480 }}>
         <p style={{ fontFamily: "var(--font-fraunces)", fontSize: 13, color: "var(--text-dim)", letterSpacing: "0.18em", textTransform: "lowercase", textAlign: "center", margin: "0 0 56px" }}>
           untether
         </p>
+
+        {screen === "intro" && <IntroScreen onContinue={handleIntroDone} />}
 
         {screen === "input" && (
           <InputScreen checkIn={checkIn} setCheckIn={setCheckIn} onSubmit={handleSubmit} loading={loading} error={error} />
