@@ -1,5 +1,8 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { getDeviceId } from "../lib/deviceId";
+
 type InputScreenProps = {
   checkIn: string;
   setCheckIn: (value: string) => void;
@@ -15,8 +18,51 @@ export default function InputScreen({
   loading,
   error,
 }: InputScreenProps) {
+  const [memoryLine, setMemoryLine] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await fetch("/api/memory", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ device_id: getDeviceId() }),
+        });
+        if (!res.ok) return;
+        const data: { line: string | null } = await res.json();
+        if (!cancelled) setMemoryLine(data.line);
+      } catch {
+        /* memory is optional - silently show nothing */
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <>
+      {memoryLine && (
+        <p
+          style={{
+            fontFamily: "var(--font-fraunces)",
+            fontStyle: "italic",
+            fontSize: 14,
+            color: "var(--text-dim)",
+            textAlign: "center",
+            margin: "0 0 32px",
+            lineHeight: 1.7,
+            maxWidth: 360,
+            marginLeft: "auto",
+            marginRight: "auto",
+          }}
+        >
+          {memoryLine}
+        </p>
+      )}
+
       <h1
         style={{
           fontFamily: "var(--font-fraunces)",
@@ -64,6 +110,7 @@ export default function InputScreen({
           outline: "none",
           marginBottom: 24,
           opacity: loading ? 0.5 : 1,
+          boxSizing: "border-box",
         }}
         onFocus={(e) => (e.currentTarget.style.borderColor = "var(--accent)")}
         onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border)")}
