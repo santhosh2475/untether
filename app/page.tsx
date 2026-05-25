@@ -19,6 +19,8 @@ import PulseIntro from "../components/PulseIntro";
 import PulseGame from "../components/PulseGame";
 import PulseComplete from "../components/PulseComplete";
 import ReflectionScreen from "../components/ReflectionScreen";
+import Fade from "../components/Fade";
+
 
 const ACCENTS: Record<string, string> = {
   catastrophising: "#7da6c4",
@@ -199,7 +201,7 @@ export default function Home() {
         <p style={{ fontFamily: "var(--font-fraunces)", fontSize: 13, color: "var(--text-dim)", letterSpacing: "0.18em", textTransform: "lowercase", textAlign: "center", margin: "0 0 56px" }}>
           untether
         </p>
-
+         <Fade screenKey={screen}>
         {screen === "intro" && <IntroScreen onContinue={handleIntroDone} />}
 
         {screen === "input" && (
@@ -250,7 +252,9 @@ export default function Home() {
 
         {screen === "reflect" && (
           <ReflectionScreen loopType={loopType} game={reflectGame} checkIn={checkIn} deviceId={getDeviceId()} accent={accent} onDone={handleReset} />
+
         )}
+        </Fade>
       </div>
     </main>
   );
