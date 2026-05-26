@@ -93,7 +93,7 @@ export default function Home() {
       const response = await fetch("/api/gamemaster", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ check_in: checkIn, loop_type: result.loop_type }),
+        body: JSON.stringify({ check_in: checkIn, loop_type: result.loop_type, device_id: getDeviceId() }),
       });
       if (!response.ok) throw new Error("Gamemaster failed");
       const data: { opening: string; game: string } = await response.json();

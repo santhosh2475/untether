@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import type { LoopType } from "./types";
 import { GAMEMASTER_SYSTEM_PROMPT } from "./gamemasterPrompt";
+import type { RetrievedSession } from "./retrieval";
 
 export type GamemasterOutput = {
   opening: string;
@@ -22,15 +23,24 @@ const FALLBACK_OPENINGS: Record<LoopType, string> = {
     "The loop is holding too many things at once. For the next ninety seconds, we set them down, one at a time.",
 };
 
-
-
 export async function generateOpening(
   checkIn: string,
-  loopType: LoopType
+  loopType: LoopType,
+  pastSessions: RetrievedSession[] = []
 ): Promise<GamemasterOutput> {
   const game = GAME_FOR_LOOP[loopType];
 
-  const userMessage = `Loop type: ${loopType}\nTheir thought: "${checkIn}"`;
+  let userMessage = `Loop type: ${loopType}\\nTheir thought: "${checkIn}"`;
+
+  const relevant = pastSessions.filter((s) => s.similarity > 0.65);
+  if (relevant.length > 0) {
+    const lines = relevant
+      .map((s) => `- (${s.loop_type}) "${s.check_in}"`)
+      .join("\\n");
+    userMessage +=
+      `\\n\\nThis person has used Untether before. Some past late-night thoughts of theirs that resemble tonight's:\\n${lines}\\n` +
+      `If it feels natural and gentle, you may lightly acknowledge that this is familiar ground for them. Do not list their history back to them. Do not make them feel watched. Only use this if it adds warmth.`;
+  }
 
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY! });
