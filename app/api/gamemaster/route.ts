@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { generateOpening } from "../../../lib/gamemaster";
 import { retrievePastSessions } from "../../../lib/retrieval";
+import type { RetrievedSession } from "../../../lib/retrieval";
 import type { LoopType } from "../../../lib/types";
 
 const VALID_LOOPS: LoopType[] = ["catastrophising", "shame", "racing"];
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
       );
     }
 
-    let pastSessions = [];
+    let pastSessions: RetrievedSession[] = [];
     try {
       pastSessions = await retrievePastSessions(deviceId, checkIn, 3);
     } catch (retErr) {
